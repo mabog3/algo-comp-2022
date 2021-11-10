@@ -21,7 +21,58 @@ def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List
             - What data structure can you use to take advantage of this fact when forming your matches?
         - This is by no means an exhaustive list, feel free to reach out to us for more help!
     """
+
+    #change scores of incompatible pairs to be 0 
+    n = len(scores) 
+    for i in range(n - 1):
+        for j in range(i + 1, n):
+            if (gender_pref[i] == "Women" and gender_id[j] != "Female") or (gender_pref[i] == "Men" and gender_id[j] != "Male"):
+                scores[i][j] = 0 
+            if (gender_pref[j] == "Women" and gender_id[i] != "Female") or (gender_pref[j] == "Men" and gender_id[i] != "Male"):
+                scores[j][i] = 0
+
+
     matches = [()]
+
+    middle = int(n / 2) #first half will be proposers, second half will be recievers 
+
+    ranklist = [None]*n
+    for person in range(n): # get preferences from scores 
+        scorelist = scores[person]
+        preferences = [] 
+        for j in range(n):
+            # if j != person: 
+            preferences.append([j, scorelist[j]]) #pairs score with the person who scored it 
+        sorted(preferences, key=lambda l:l[1], reverse=True) 
+        for k in range(len(preferences)):
+            preferences[k] = preferences[k][0] #just leaves the people in the ranking
+        ranklist[person] = preferences
+
+    unmatched_proposers = []
+    reciever_matches = [None]*(middle)
+
+    for proposer in range(middle):
+        unmatched_proposers.append(proposer)
+
+    while unmatched_proposers != []:
+        prop = unmatched_proposers.pop()
+        matched = False
+        for reciever in ranklist[prop]:
+            if not matched: 
+                if reciever_matches[reciever - middle] == None:
+                    reciever_matches[reciever - middle] = prop 
+                    matched = True
+                else: 
+                    if ranklist[reciever][prop] > ranklist[reciever][reciever_matches[reciever - middle]]:
+                        unmatched_proposers.append(reciever_matches[reciever - middle])
+                        reciever_matches[reciever - middle] = prop 
+                        matched = True
+        if not matched:
+            unmatched_proposers.append(prop)
+
+    for i in range(len(reciever_matches)):
+        matches.append((reciever_matches[i], i))
+        
     return matches
 
 if __name__ == "__main__":
